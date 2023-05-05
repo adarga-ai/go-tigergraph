@@ -1,0 +1,65 @@
+/*
+Copyright 2023 Adarga Limited
+
+Licensed under the Apache License, Version 2.0 (the "License"). You may not use
+this file except in compliance with the License. You may obtain a copy of the
+License at:
+https://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software distributed
+under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
+CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+*/
+CREATE GRAPH TestGraph()
+USE GRAPH TestGraph
+
+BEGIN
+CREATE SCHEMA_CHANGE JOB create_schema FOR GRAPH TestGraph {
+
+    ADD VERTEX TestVertex (
+        PRIMARY_ID id STRING,
+        x FLOAT,
+        y FLOAT
+    ) WITH primary_id_as_attribute="true";
+
+}
+END
+
+RUN SCHEMA_CHANGE JOB create_schema
+
+BEGIN
+CREATE LOADING JOB test_vertex_loading_job FOR GRAPH TestGraph {
+    DEFINE FILENAME f;
+
+    LOAD f TO VERTEX TestVertex VALUES (
+        $"id",
+        $"x",
+        $"y"
+    ) USING JSON_FILE="true";
+}
+END
+
+BEGIN
+CREATE OR REPLACE QUERY vertices_in_circle (
+  FLOAT cx,
+  FLOAT cy,
+  FLOAT r
+)
+FOR GRAPH TestGraph
+{
+  vertices = 
+    SELECT
+      v
+    FROM
+      TestVertex:v
+    WHERE
+      sqrt(pow(v.x - cx, 2) + pow(v.y - cy, 2)) < r;
+  PRINT vertices;
+}
+END
+
+BEGIN
+INSTALL QUERY 
+  vertices_in_circle
+END
