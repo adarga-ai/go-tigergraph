@@ -225,7 +225,7 @@ func (client *TigerGraphClient) tryMigrateStep(number string, mode string, migra
 			fileName := migrationFileDir + "/" + file.Name()
 			err = client.migrateFile(fileName)
 			if err != nil {
-				return fmt.Errorf("Failed to set up TG schema: %w", err)
+				return fmt.Errorf("failed to set up TG schema: %s, %w", err, ErrTigerGraphSchemaSetUpFailed)
 			}
 
 			return nil
