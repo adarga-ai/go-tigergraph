@@ -473,7 +473,7 @@ func TestMigrate(t *testing.T) {
 					migrationDir,
 					false,
 				)
-				assert.Equal(t, tigergraph.ErrTigerGraphSchemaSetUpFailed, err)
+				assert.ErrorIs(t, err, tigergraph.ErrTigerGraphSchemaSetUpFailed)
 
 				// There is only one call to the file URL (the failing 000 migration)
 				// because we don't try to proceed with any more
