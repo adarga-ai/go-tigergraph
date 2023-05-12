@@ -21,7 +21,7 @@ import (
 	"net/http/httptest"
 	"time"
 
-	"github.com/Adarga-Ltd/go-tigergraph/tigergraph"
+	"github.com/adarga-ai/go-tigergraph/tigergraph"
 )
 
 type handlerFunc = func(w http.ResponseWriter, r *http.Request)

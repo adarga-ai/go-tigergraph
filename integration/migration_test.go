@@ -21,7 +21,7 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/Adarga-Ltd/go-tigergraph/tigergraph"
+	"github.com/adarga-ai/go-tigergraph/tigergraph"
 	"github.com/stretchr/testify/assert"
 )
 

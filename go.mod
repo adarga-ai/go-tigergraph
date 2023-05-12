@@ -1,4 +1,4 @@
-module github.com/Adarga-Ltd/go-tigergraph
+module github.com/adarga-ai/go-tigergraph
 
 go 1.20
 

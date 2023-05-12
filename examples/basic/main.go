@@ -17,7 +17,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/Adarga-Ltd/go-tigergraph/tigergraph"
+	"github.com/adarga-ai/go-tigergraph/tigergraph"
 )
 
 type TestVertex struct {
