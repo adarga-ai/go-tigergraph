@@ -9,7 +9,7 @@ This is not an officially supported Adarga product.
 
 ## Installation
 
-Add this as a dependency to your project using `go get github.com/Adarga-Ltd/go-tigergraph`.
+Add this as a dependency to your project using `go get github.com/adarga-ai/go-tigergraph`.
 
 # Usage
 
