@@ -14,6 +14,7 @@ specific language governing permissions and limitations under the License.
 package tigergraph
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -43,10 +44,10 @@ var (
 // If any failure is detected, an error is returned.  Note however that this
 // does not mean that none of the GSQL was executed. You may need to inspect the
 // logged response to identify what succeeded in the request.
-func (c *TigerGraphClient) RunGSQL(body string) error {
+func (c *TigerGraphClient) RunGSQL(ctx context.Context, body string) error {
 	escapedBody := url.QueryEscape(body)
 
-	request, err := c.CreateGSQLServerRequest(http.MethodPost, FileURL, escapedBody)
+	request, err := c.CreateGSQLServerRequest(ctx, http.MethodPost, FileURL, escapedBody)
 	if err != nil {
 		return err
 	}
@@ -77,7 +78,7 @@ func (c *TigerGraphClient) RunGSQL(body string) error {
 
 	respString := string(respBytes)
 	respLines := strings.Split(respString, "\n")
-	if len(respLines) < 2 {
+	if len(respLines) < 2 { //nolint:gomnd
 		return fmt.Errorf(
 			"not enough returned lines in GSQL response. full response: %s: %w",
 			respString,

@@ -14,6 +14,7 @@ specific language governing permissions and limitations under the License.
 package tigergraph
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -95,7 +96,11 @@ func marshalJSONL(lines []interface{}) ([]byte, error) {
 }
 
 // RunLoadingJobJSONL runs a loading job with the given array of interfaces.
-func (c *TigerGraphClient) RunLoadingJobJSONL(graphName string, loadingJobName string, lines []interface{}) error {
+func (c *TigerGraphClient) RunLoadingJobJSONL(ctx context.Context,
+	graphName string,
+	loadingJobName string,
+	lines []any,
+) error {
 	bodyBytes, err := marshalJSONL(lines)
 	if err != nil {
 		return ErrMarshallingJSONL
@@ -104,7 +109,7 @@ func (c *TigerGraphClient) RunLoadingJobJSONL(graphName string, loadingJobName s
 	queryURL := fmt.Sprintf("/ddl/%s?tag=%s&filename=f", graphName, loadingJobName)
 
 	var response LoadingJobResponse
-	err = c.PostRaw(queryURL, graphName, bodyBytes, &response)
+	err = c.PostRaw(ctx, queryURL, graphName, bodyBytes, &response)
 
 	if err != nil {
 		return err

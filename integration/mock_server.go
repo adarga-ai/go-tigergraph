@@ -74,9 +74,9 @@ func (ms *MockTigerGraphServer) setInitialMocks() {
 			ms.Username,
 			ms.Password,
 			// Create a token that lasts 5 minutes by default
-			time.Now().Add(5*time.Minute).Unix(),
+			time.Now().Add(5*time.Minute).Unix(), //nolint:gomnd
 		),
-		tigergraph.PingURL: func(w http.ResponseWriter, r *http.Request) {
+		tigergraph.PingURL: func(w http.ResponseWriter, _ *http.Request) {
 			w.WriteHeader(http.StatusOK)
 		},
 	}

@@ -14,6 +14,7 @@ specific language governing permissions and limitations under the License.
 package tigergraph
 
 import (
+	"context"
 	_ "embed"
 	"errors"
 	"fmt"
@@ -52,8 +53,8 @@ var (
 
 // CheckIsInitialised determines if the metadata graph has been initialised
 // and ready for use.
-func (client *TigerGraphClient) CheckIsInitialised() (bool, error) {
-	meta, err := client.GetGraphMetadata(MetadataGraphName)
+func (c *TigerGraphClient) CheckIsInitialised(ctx context.Context) (bool, error) {
+	meta, err := c.GetGraphMetadata(ctx, MetadataGraphName)
 	if err != nil {
 		return false, err
 	}
@@ -79,21 +80,21 @@ var InitFileString string
 // run.
 //
 // If the metadata graph does not yet exist, it is created and initialised.
-func (client *TigerGraphClient) Migrate(
+func (c *TigerGraphClient) Migrate(
+	ctx context.Context,
 	graph string,
 	version string,
 	initVersion string,
 	migrationFileDir string,
 	dryRun bool,
 ) error {
-	isInitialised, err := client.CheckIsInitialised()
+	isInitialised, err := c.CheckIsInitialised(ctx)
 	if err != nil {
 		return err
 	}
 
 	if !isInitialised {
-		err = client.RunGSQL(InitFileString)
-		if err != nil {
+		if err = c.RunGSQL(ctx, InitFileString); err != nil {
 			return err
 		}
 
@@ -110,49 +111,35 @@ func (client *TigerGraphClient) Migrate(
 			}
 
 			for _, migrationNumber := range migrationNumbers {
-				err = client.commitMigrationVersion(graph, migrationNumber, migrationMode)
-				if err != nil {
-					return fmt.Errorf(
-						"failed to commit migration number: migrationNumber: %s, %w",
-						migrationNumber,
-						err,
-					)
+				if err = c.commitMigrationVersion(ctx, graph, migrationNumber, migrationMode); err != nil {
+					return fmt.Errorf("failed to commit migration number: migrationNumber: %s, %w", migrationNumber, err)
 				}
 			}
 		}
 	}
 
-	currentMigrationNumber, err := client.GetCurrentMigrationNumber(graph)
+	currentMigrationNumber, err := c.GetCurrentMigrationNumber(ctx, graph)
 	if err != nil {
-		return fmt.Errorf(
-			"failed to get current migration number from TigerGraph: %w",
-			err,
-		)
+		return fmt.Errorf("failed to get current migration number from TigerGraph: %w", err)
 	}
 
 	desiredMigrationNumber := version
 	migrationNumbers, migrationMode, err := getMigrationsBetweenVersions(currentMigrationNumber, desiredMigrationNumber)
+	if err != nil {
+		return err
+	}
 
 	for _, migrationNumber := range migrationNumbers {
 		if dryRun {
 			continue
 		}
-
-		err = client.tryMigrateStep(migrationNumber, migrationMode, migrationFileDir)
-		if err != nil {
+		if err = c.tryMigrateStep(ctx, migrationNumber, migrationMode, migrationFileDir); err != nil {
 			return err
 		}
-
-		err = client.commitMigrationVersion(graph, migrationNumber, migrationMode)
-		if err != nil {
-			return fmt.Errorf(
-				trackMigrationFailureTemplate,
-				migrationNumber,
-				err,
-			)
+		if err = c.commitMigrationVersion(ctx, graph, migrationNumber, migrationMode); err != nil {
+			return fmt.Errorf(trackMigrationFailureTemplate, migrationNumber, err)
 		}
 	}
-
 	return nil
 }
 
@@ -212,7 +199,7 @@ func getMigrationsBetweenVersions(from string, to string) ([]string, string, err
 	return result, mode, nil
 }
 
-func (client *TigerGraphClient) tryMigrateStep(number string, mode string, migrationFileDir string) error {
+func (c *TigerGraphClient) tryMigrateStep(ctx context.Context, number string, mode string, migrationFileDir string) error {
 	files, err := os.ReadDir(migrationFileDir)
 	if err != nil {
 		return err
@@ -223,7 +210,7 @@ func (client *TigerGraphClient) tryMigrateStep(number string, mode string, migra
 	for _, file := range files {
 		if strings.HasPrefix(file.Name(), number+"_") && strings.HasSuffix(file.Name(), expectedSuffix) {
 			fileName := migrationFileDir + "/" + file.Name()
-			err = client.migrateFile(fileName)
+			err = c.migrateFile(ctx, fileName)
 			if err != nil {
 				return fmt.Errorf("failed to set up TG schema: %s, %w", err, ErrTigerGraphSchemaSetUpFailed)
 			}
@@ -239,13 +226,13 @@ func (client *TigerGraphClient) tryMigrateStep(number string, mode string, migra
 	)
 }
 
-func (client *TigerGraphClient) migrateFile(fileName string) error {
+func (c *TigerGraphClient) migrateFile(ctx context.Context, fileName string) error {
 	bytes, err := os.ReadFile(fileName)
 	if err != nil {
 		return err
 	}
 
-	err = client.RunGSQL(string(bytes))
+	err = c.RunGSQL(ctx, string(bytes))
 	if err != nil {
 		return err
 	}
@@ -276,7 +263,7 @@ type MigrationUpsertPayload struct {
 	Vertices MigrationVerticesPayload `json:"vertices"`
 }
 
-func (client *TigerGraphClient) commitMigrationVersion(graph string, version string, mode string) error {
+func (c *TigerGraphClient) commitMigrationVersion(ctx context.Context, graph string, version string, mode string) error {
 	createdAt := time.Now()
 	id := fmt.Sprintf("%s_%s_%s", version, mode, createdAt.Format(time.RFC3339))
 	payload := MigrationUpsertPayload{
@@ -292,7 +279,7 @@ func (client *TigerGraphClient) commitMigrationVersion(graph string, version str
 		},
 	}
 
-	res, err := client.Upsert(MetadataGraphName, payload)
+	res, err := c.Upsert(ctx, MetadataGraphName, payload)
 	if err != nil {
 		return err
 	}

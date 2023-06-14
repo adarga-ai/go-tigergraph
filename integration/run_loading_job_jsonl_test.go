@@ -14,6 +14,7 @@ specific language governing permissions and limitations under the License.
 package integration
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"testing"
@@ -27,7 +28,7 @@ type TestPayload struct {
 	Value string `json:"value"`
 }
 
-func TestLoadingJobJSONL(t *testing.T) {
+func TestLoadingJobJSONL(t *testing.T) { //nolint:funlen
 	tests := []struct {
 		name     string
 		username string
@@ -62,7 +63,8 @@ func TestLoadingJobJSONL(t *testing.T) {
 					},
 				})
 
-				err := client.RunLoadingJobJSONL(graphName, "test_loading_job", testPayload)
+				ctx := context.Background()
+				err := client.RunLoadingJobJSONL(ctx, graphName, "test_loading_job", testPayload)
 				assert.Nil(t, err)
 
 				calls := srv.Calls[testLoadingJobURL]
@@ -107,8 +109,8 @@ func TestLoadingJobJSONL(t *testing.T) {
 						},
 					},
 				})
-
-				err := client.RunLoadingJobJSONL(graphName, "test_loading_job", testPayload)
+				ctx := context.Background()
+				err := client.RunLoadingJobJSONL(ctx, graphName, "test_loading_job", testPayload)
 				assert.Nil(t, err)
 
 				calls := srv.Calls[testLoadingJobURL]
@@ -155,7 +157,8 @@ func TestLoadingJobJSONL(t *testing.T) {
 					},
 				})
 
-				err := client.RunLoadingJobJSONL(graphName, "test_loading_job", testPayload)
+				ctx := context.Background()
+				err := client.RunLoadingJobJSONL(ctx, graphName, "test_loading_job", testPayload)
 				assert.ErrorIs(t, err, tigergraph.ErrLoadingJobPartialFailure)
 			},
 		},
@@ -187,7 +190,8 @@ func TestLoadingJobJSONL(t *testing.T) {
 					},
 				})
 
-				err := client.RunLoadingJobJSONL(graphName, "unknown_test_loading_job", testPayload)
+				ctx := context.Background()
+				err := client.RunLoadingJobJSONL(ctx, graphName, "unknown_test_loading_job", testPayload)
 				assert.ErrorIs(t, err, tigergraph.ErrNonOK)
 			},
 		},
@@ -220,7 +224,8 @@ func TestLoadingJobJSONL(t *testing.T) {
 					},
 				})
 
-				err := client.RunLoadingJobJSONL(graphName, "test_loading_job", testPayload)
+				ctx := context.Background()
+				err := client.RunLoadingJobJSONL(ctx, graphName, "test_loading_job", testPayload)
 				assert.ErrorIs(t, err, tigergraph.ErrLoadingJobRequestFailed)
 			},
 		},

@@ -13,6 +13,8 @@ specific language governing permissions and limitations under the License.
 */
 package tigergraph
 
+import "context"
+
 // GetCurrentMigrationVersionURL is the URL to get the current migration version
 const GetCurrentMigrationVersionURL = "/query/get_latest_migration"
 
@@ -51,14 +53,14 @@ type CurrentMigrationVersionPostBody struct {
 
 // GetCurrentMigrationNumber returns the current migration number set on the TG instance.
 // Returns "" if no migrations have been run
-func (c *TigerGraphClient) GetCurrentMigrationNumber(graph string) (string, error) {
+func (c *TigerGraphClient) GetCurrentMigrationNumber(ctx context.Context, graph string) (string, error) {
 	response := &CurrentMigrationVersionResponse{}
 
 	postBody := CurrentMigrationVersionPostBody{
 		GraphName: graph,
 	}
 
-	err := c.Post(GetCurrentMigrationVersionURL, MetadataGraphName, postBody, response)
+	err := c.Post(ctx, GetCurrentMigrationVersionURL, MetadataGraphName, postBody, response)
 
 	if err != nil {
 		return "", err
@@ -75,7 +77,7 @@ func (c *TigerGraphClient) GetCurrentMigrationNumber(graph string) (string, erro
 	latestMigration := response.Results[0].LatestMigration[0]
 
 	mode := latestMigration.Attributes.Mode
-	if mode != "up" && mode != "down" {
+	if mode != "up" && mode != "down" { //nolint:goconst
 		return "", ErrInvalidMigrationNumber
 	}
 
