@@ -14,6 +14,7 @@ specific language governing permissions and limitations under the License.
 package integration
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -25,7 +26,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestIsInitialised(t *testing.T) {
+func TestIsInitialised(t *testing.T) { //nolint:funlen
 	tests := []struct {
 		name   string
 		action func(t *testing.T, client *tigergraph.TigerGraphClient, srv *MockTigerGraphServer)
@@ -37,7 +38,8 @@ func TestIsInitialised(t *testing.T) {
 					w.WriteHeader(http.StatusInternalServerError)
 				})
 
-				result, err := client.CheckIsInitialised()
+				ctx := context.Background()
+				result, err := client.CheckIsInitialised(ctx)
 				assert.ErrorIs(t, err, tigergraph.ErrNonOK)
 				assert.False(t, result)
 			},
@@ -49,8 +51,8 @@ func TestIsInitialised(t *testing.T) {
 					Error:   true,
 					Message: "Graph name ClientMetadata cannot be found. For whatever reason.",
 				})
-
-				result, err := client.CheckIsInitialised()
+				ctx := context.Background()
+				result, err := client.CheckIsInitialised(ctx)
 				assert.Nil(t, err)
 				assert.False(t, result)
 			},
@@ -63,7 +65,8 @@ func TestIsInitialised(t *testing.T) {
 					Message: "You are not authenticated",
 				})
 
-				result, err := client.CheckIsInitialised()
+				ctx := context.Background()
+				result, err := client.CheckIsInitialised(ctx)
 				assert.ErrorIs(t, err, tigergraph.ErrUnknownInitialisationCheckFailure)
 				assert.False(t, result)
 			},
@@ -77,7 +80,8 @@ func TestIsInitialised(t *testing.T) {
 					Results: &tigergraph.GraphMetadataResponseResult{},
 				})
 
-				result, err := client.CheckIsInitialised()
+				ctx := context.Background()
+				result, err := client.CheckIsInitialised(ctx)
 				assert.ErrorIs(t, err, tigergraph.ErrUnknownInitialisationCheckFailure)
 				assert.False(t, result)
 			},
@@ -92,8 +96,8 @@ func TestIsInitialised(t *testing.T) {
 						GraphName: tigergraph.MetadataGraphName,
 					},
 				})
-
-				result, err := client.CheckIsInitialised()
+				ctx := context.Background()
+				result, err := client.CheckIsInitialised(ctx)
 				assert.Nil(t, err)
 				assert.True(t, result)
 			},
@@ -117,7 +121,7 @@ func TestIsInitialised(t *testing.T) {
 	}
 }
 
-func TestMigrate(t *testing.T) {
+func TestMigrate(t *testing.T) { //nolint:funlen
 	exampleGraphName := "MyGraph"
 	migrationDir := "../testutils/migrations/v1"
 
@@ -187,8 +191,9 @@ func TestMigrate(t *testing.T) {
 
 				// We are on migration 001 already
 				srv.MockResponse(tigergraph.GetCurrentMigrationVersionURL, makeLatestMigrationVertexResponse("001", "up"))
-
+				ctx := context.Background()
 				err := client.Migrate(
+					ctx,
 					exampleGraphName,
 					"001",
 					"",
@@ -225,8 +230,10 @@ func TestMigrate(t *testing.T) {
 					}
 				})
 
+				ctx := context.Background()
 				// There are two calls to run GSQL
 				err := client.Migrate(
+					ctx,
 					exampleGraphName,
 					"000",
 					"",
@@ -271,7 +278,9 @@ func TestMigrate(t *testing.T) {
 					}
 				})
 
+				ctx := context.Background()
 				err := client.Migrate(
+					ctx,
 					exampleGraphName,
 					"001",
 					"001",
@@ -315,7 +324,9 @@ func TestMigrate(t *testing.T) {
 					}
 				})
 
+				ctx := context.Background()
 				err := client.Migrate(
+					ctx,
 					exampleGraphName,
 					"001",
 					"000",
@@ -357,8 +368,9 @@ func TestMigrate(t *testing.T) {
 				})
 
 				srv.MockResponse(tigergraph.GetCurrentMigrationVersionURL, makeLatestMigrationVertexResponse("001", "up"))
-
+				ctx := context.Background()
 				err := client.Migrate(
+					ctx,
 					exampleGraphName,
 					"001",
 					"000",
@@ -393,8 +405,9 @@ func TestMigrate(t *testing.T) {
 				})
 
 				srv.MockResponse(migrationUpsertURL, oneAcceptedUpsertVertexResponse)
-
+				ctx := context.Background()
 				err := client.Migrate(
+					ctx,
 					exampleGraphName,
 					"000",
 					"",
@@ -433,8 +446,9 @@ func TestMigrate(t *testing.T) {
 						t.Errorf("failed to write to response writer: %s\n", err)
 					}
 				})
-
+				ctx := context.Background()
 				err := client.Migrate(
+					ctx,
 					exampleGraphName,
 					"001",
 					"001",
@@ -466,7 +480,9 @@ func TestMigrate(t *testing.T) {
 					w.WriteHeader(http.StatusInternalServerError)
 				})
 
+				ctx := context.Background()
 				err := client.Migrate(
+					ctx,
 					exampleGraphName,
 					"001",
 					"",
@@ -506,8 +522,9 @@ func TestMigrate(t *testing.T) {
 						t.Errorf("failed to write to response writer: %s\n", err)
 					}
 				})
-
+				ctx := context.Background()
 				err := client.Migrate(
+					ctx,
 					exampleGraphName,
 					"001",
 					"000",
@@ -551,7 +568,9 @@ func TestMigrate(t *testing.T) {
 					}
 				})
 
+				ctx := context.Background()
 				err := client.Migrate(
+					ctx,
 					exampleGraphName,
 					"001",
 					"000",
@@ -596,7 +615,9 @@ func TestMigrate(t *testing.T) {
 					}
 				})
 
+				ctx := context.Background()
 				err := client.Migrate(
+					ctx,
 					exampleGraphName,
 					"001",
 					"000",
@@ -632,7 +653,9 @@ func TestMigrate(t *testing.T) {
 					}
 				})
 
+				ctx := context.Background()
 				err := client.Migrate(
+					ctx,
 					exampleGraphName,
 					"001",
 					"000",
@@ -670,7 +693,9 @@ func TestMigrate(t *testing.T) {
 				srv.MockResponse(tigergraph.GetCurrentMigrationVersionURL, emptyLatestMigrationVertexResponse)
 
 				// There are no calls to run GSQL
+				ctx := context.Background()
 				err := client.Migrate(
+					ctx,
 					exampleGraphName,
 					"000",
 					"",
@@ -698,7 +723,9 @@ func TestMigrate(t *testing.T) {
 				// Note "don" instead of "down"
 				srv.MockResponse(tigergraph.GetCurrentMigrationVersionURL, makeLatestMigrationVertexResponse("001", "don"))
 
+				ctx := context.Background()
 				err := client.Migrate(
+					ctx,
 					exampleGraphName,
 					"000",
 					"",
@@ -740,7 +767,9 @@ func TestMigrate(t *testing.T) {
 					}
 				})
 
+				ctx := context.Background()
 				err := client.Migrate(
+					ctx,
 					exampleGraphName,
 					"001",
 					"000",

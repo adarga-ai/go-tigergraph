@@ -15,6 +15,7 @@ package integration
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -24,7 +25,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestClientRunGSQL(t *testing.T) {
+func TestClientRunGSQL(t *testing.T) { //nolint:funlen
 	tests := []struct {
 		name     string
 		username string
@@ -36,7 +37,7 @@ func TestClientRunGSQL(t *testing.T) {
 			username: expectedUsername,
 			password: expectedPassword,
 			action: func(t *testing.T, client *tigergraph.TigerGraphClient, srv *MockTigerGraphServer) {
-				gsqlBody := "CREATE GRAPH Relationships()"
+				gsqlBody := "CREATE GRAPH Relationships()" //nolint:goconst
 
 				responseString := fmt.Sprintf("Installing query...\n\n%s\n", tigergraph.SuccessString)
 				srv.Mock(tigergraph.FileURL, func(w http.ResponseWriter, r *http.Request) {
@@ -45,8 +46,8 @@ func TestClientRunGSQL(t *testing.T) {
 						t.Errorf("failed to write to response")
 					}
 				})
-
-				err := client.RunGSQL(gsqlBody)
+				ctx := context.Background()
+				err := client.RunGSQL(ctx, gsqlBody)
 				assert.Nil(t, err)
 
 				calls := srv.Calls[tigergraph.FileURL]
@@ -72,7 +73,8 @@ func TestClientRunGSQL(t *testing.T) {
 					}
 				})
 
-				err := client.RunGSQL(gsqlBody)
+				ctx := context.Background()
+				err := client.RunGSQL(ctx, gsqlBody)
 				assert.ErrorIs(t, err, tigergraph.ErrGSQLFailure)
 
 				calls := srv.Calls[tigergraph.FileURL]
@@ -94,7 +96,8 @@ func TestClientRunGSQL(t *testing.T) {
 					}
 				})
 
-				err := client.RunGSQL(gsqlBody)
+				ctx := context.Background()
+				err := client.RunGSQL(ctx, gsqlBody)
 				assert.ErrorIs(t, err, tigergraph.ErrGSQLFailure)
 
 				calls := srv.Calls[tigergraph.FileURL]
@@ -112,7 +115,8 @@ func TestClientRunGSQL(t *testing.T) {
 					w.WriteHeader(http.StatusBadRequest)
 				})
 
-				err := client.RunGSQL(gsqlBody)
+				ctx := context.Background()
+				err := client.RunGSQL(ctx, gsqlBody)
 				assert.ErrorIs(t, err, tigergraph.ErrNonOK)
 
 				calls := srv.Calls[tigergraph.FileURL]
@@ -134,7 +138,8 @@ func TestClientRunGSQL(t *testing.T) {
 					}
 				})
 
-				err := client.RunGSQL(gsqlBody)
+				ctx := context.Background()
+				err := client.RunGSQL(ctx, gsqlBody)
 				assert.ErrorIs(t, err, tigergraph.ErrGSQLFailure)
 
 				calls := srv.Calls[tigergraph.FileURL]

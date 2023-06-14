@@ -15,6 +15,7 @@ package tigergraph
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"net/http"
 	"time"
@@ -45,7 +46,7 @@ type RequestTokenResponse struct {
 // Auth authenticates with TigerGraph by hitting the auth endpoint using Basic Auth.
 // Will do nothing if a non-expired token for the requested graph already exists in
 // the client cache.
-func (c *TigerGraphClient) Auth(graph string) error {
+func (c *TigerGraphClient) Auth(ctx context.Context, graph string) error {
 	existingToken, exists := c.Tokens[graph]
 	if exists && existingToken.Expires.After(time.Now()) {
 		return nil
@@ -59,7 +60,7 @@ func (c *TigerGraphClient) Auth(graph string) error {
 		return err
 	}
 
-	request, err := http.NewRequest("POST", c.BaseURL+RequestTokenURL, bytes.NewReader(data))
+	request, err := http.NewRequestWithContext(ctx, "POST", c.BaseURL+RequestTokenURL, bytes.NewReader(data))
 	if err != nil {
 		return err
 	}

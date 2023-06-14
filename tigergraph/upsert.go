@@ -14,6 +14,7 @@ specific language governing permissions and limitations under the License.
 package tigergraph
 
 import (
+	"context"
 	"fmt"
 )
 
@@ -41,10 +42,10 @@ type UpsertResponse struct {
 
 // Upsert upserts data to the given graph.
 // https://docs.tigergraph.com/tigergraph-server/current/api/upsert-rest#_examples
-func (c *TigerGraphClient) Upsert(graphName string, data any) (*UpsertResponseResult, error) {
+func (c *TigerGraphClient) Upsert(ctx context.Context, graphName string, data any) (*UpsertResponseResult, error) {
 	responseResult := &UpsertResponse{}
 
-	err := c.Post(UpsertURL+"/"+graphName, graphName, data, responseResult)
+	err := c.Post(ctx, UpsertURL+"/"+graphName, graphName, data, responseResult)
 
 	if err != nil {
 		return nil, err

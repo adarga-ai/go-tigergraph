@@ -15,6 +15,7 @@ package tigergraph
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -35,13 +36,13 @@ var (
 	ErrNonOK = errors.New("TigerGraph returned non-OK status code")
 
 	// ErrBodyReadFailed  represents a failure to read the TigerGraph response body
-	ErrBodyReadFailed = errors.New("failed to read TigerGraph response body")
+	ErrBodyReadFailed = errors.New("failed to read response body")
 
 	// ErrTigerGraphError means that an error is present on the returned response body
-	ErrTigerGraphError = errors.New("TigerGraph signalled an error in the response body")
+	ErrTigerGraphError = errors.New("error in the response body")
 
 	// ErrRequestFailed represents a failure to make a request to TigerGraph
-	ErrRequestFailed = errors.New("The request to TigerGraph failed")
+	ErrRequestFailed = errors.New("failed request")
 
 	// ErrNotOneResult represents a response shape that does not contain exactly one result
 	ErrNotOneResult = errors.New("TigerGraph did not respond with exactly one result")
@@ -87,14 +88,13 @@ func NewClient(
 }
 
 // Get makes a GET request to the TigerGraph endpoint. This handles auth automatically.
-func (c *TigerGraphClient) Get(queryURL string, graph string, result interface{}) error {
-	request, err := http.NewRequest("GET", c.BaseURL+queryURL, nil)
+func (c *TigerGraphClient) Get(ctx context.Context, queryURL string, graph string, result interface{}) error {
+	request, err := http.NewRequestWithContext(ctx, "GET", c.BaseURL+queryURL, nil)
 	if err != nil {
 		return err
 	}
 
-	err = c.ApplyTokenAuth(request, graph)
-	if err != nil {
+	if err = c.ApplyTokenAuth(request, graph); err != nil {
 		return err
 	}
 
@@ -102,18 +102,18 @@ func (c *TigerGraphClient) Get(queryURL string, graph string, result interface{}
 }
 
 // Post makes a POST request to the TigerGraph endpoint. This handles auth automatically.
-func (c *TigerGraphClient) Post(queryURL string, graph string, body interface{}, result interface{}) error {
+func (c *TigerGraphClient) Post(ctx context.Context, queryURL string, graph string, body interface{}, result interface{}) error {
 	requestBody, err := json.Marshal(body)
 	if err != nil {
 		return err
 	}
 
-	return c.PostRaw(queryURL, graph, requestBody, result)
+	return c.PostRaw(ctx, queryURL, graph, requestBody, result)
 }
 
 // PostRaw makes a POST request to the TigerGraph endpoint with some given bytes. This handles auth automatically.
-func (c *TigerGraphClient) PostRaw(queryURL string, graph string, body []byte, result interface{}) error {
-	request, err := http.NewRequest("POST", c.BaseURL+queryURL, bytes.NewBuffer(body))
+func (c *TigerGraphClient) PostRaw(ctx context.Context, queryURL string, graph string, body []byte, result interface{}) error {
+	request, err := http.NewRequestWithContext(ctx, "POST", c.BaseURL+queryURL, bytes.NewBuffer(body))
 	if err != nil {
 		return err
 	}
@@ -160,8 +160,9 @@ func (c *TigerGraphClient) RequestInto(req *http.Request, result interface{}) er
 
 // CreateGSQLServerRequest returns a Request instance that is authenticated and ready to
 // pass to RequestInto. This is useful if headers need to be changed by the caller (such as setting the Content-Type).
-func (c *TigerGraphClient) CreateGSQLServerRequest(method string, url string, body string) (*http.Request, error) {
-	request, err := http.NewRequest(
+func (c *TigerGraphClient) CreateGSQLServerRequest(ctx context.Context, method string, url string, body string) (*http.Request, error) {
+	request, err := http.NewRequestWithContext(
+		ctx,
 		method,
 		c.BaseFileURL+url,
 		strings.NewReader(body),
@@ -180,7 +181,7 @@ func (c *TigerGraphClient) CreateGSQLServerRequest(method string, url string, bo
 //
 // https://docs.tigergraph.com/tigergraph-server/current/api/built-in-endpoints#_request_a_token
 func (c *TigerGraphClient) ApplyTokenAuth(req *http.Request, graph string) error {
-	err := c.Auth(graph)
+	err := c.Auth(req.Context(), graph)
 	if err != nil {
 		return err
 	}

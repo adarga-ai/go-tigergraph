@@ -14,6 +14,7 @@ specific language governing permissions and limitations under the License.
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 
@@ -38,10 +39,11 @@ func main() {
 
 	fmt.Println(tgURL, tgFileURL, tgUsername, tgPassword)
 
+	ctx := context.Background()
 	client := tigergraph.NewClient(tgURL, tgFileURL, tgUsername, tgPassword)
 
 	// Run migration
-	err := client.Migrate("TestGraph", "000", "", "./migrations", false)
+	err := client.Migrate(ctx, "TestGraph", "000", "", "./migrations", false)
 	if err != nil {
 		fmt.Println("failed to migrate DB: ", err)
 		return
@@ -69,7 +71,7 @@ func main() {
 	for _, v := range vertices {
 		verticesInterface = append(verticesInterface, v)
 	}
-	err = client.RunLoadingJobJSONL("TestGraph", "test_vertex_loading_job", verticesInterface)
+	err = client.RunLoadingJobJSONL(ctx, "TestGraph", "test_vertex_loading_job", verticesInterface)
 	if err != nil {
 		fmt.Println("failed to run loading job: ", err)
 		return

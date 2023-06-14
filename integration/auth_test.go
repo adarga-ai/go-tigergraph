@@ -14,6 +14,7 @@ specific language governing permissions and limitations under the License.
 package integration
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -26,7 +27,7 @@ const (
 	expectedPassword = "password"
 )
 
-func TestClientAuth(t *testing.T) {
+func TestClientAuth(t *testing.T) { //nolint:funlen
 	getMigrationNumberURL := tigergraph.GetCurrentMigrationVersionURL
 
 	tests := []struct {
@@ -40,7 +41,8 @@ func TestClientAuth(t *testing.T) {
 			username: expectedUsername,
 			password: expectedPassword,
 			action: func(t *testing.T, client *tigergraph.TigerGraphClient, srv *MockTigerGraphServer) {
-				err := client.Auth(graphName)
+				ctx := context.Background()
+				err := client.Auth(ctx, graphName)
 				assert.Nil(t, err)
 			},
 		},
@@ -49,7 +51,8 @@ func TestClientAuth(t *testing.T) {
 			username: expectedUsername,
 			password: "wrong",
 			action: func(t *testing.T, client *tigergraph.TigerGraphClient, srv *MockTigerGraphServer) {
-				err := client.Auth(graphName)
+				ctx := context.Background()
+				err := client.Auth(ctx, graphName)
 				assert.Equal(t, tigergraph.ErrNonOK, err)
 			},
 		},
@@ -58,7 +61,8 @@ func TestClientAuth(t *testing.T) {
 			username: "wrong",
 			password: expectedPassword,
 			action: func(t *testing.T, client *tigergraph.TigerGraphClient, srv *MockTigerGraphServer) {
-				err := client.Auth(graphName)
+				ctx := context.Background()
+				err := client.Auth(ctx, graphName)
 				assert.Equal(t, tigergraph.ErrNonOK, err)
 			},
 		},
@@ -69,9 +73,10 @@ func TestClientAuth(t *testing.T) {
 			action: func(t *testing.T, client *tigergraph.TigerGraphClient, srv *MockTigerGraphServer) {
 				// Two calls, but another request should not be made since the token hasn't timed out
 				// Hence the server was only hit for a token once
-				err := client.Auth(graphName)
+				ctx := context.Background()
+				err := client.Auth(ctx, graphName)
 				assert.Nil(t, err)
-				err = client.Auth(graphName)
+				err = client.Auth(ctx, graphName)
 
 				assert.Equal(t, 1, len(srv.Calls[tigergraph.RequestTokenURL]))
 				assert.Nil(t, err)
@@ -91,9 +96,10 @@ func TestClientAuth(t *testing.T) {
 
 				// Two calls. The first call to the token endpoint returned an expired token.
 				// So when we call auth again we should make another request.
-				err := client.Auth(graphName)
+				ctx := context.Background()
+				err := client.Auth(ctx, graphName)
 				assert.Nil(t, err)
-				err = client.Auth(graphName)
+				err = client.Auth(ctx, graphName)
 
 				assert.Equal(t, 2, len(srv.Calls[tigergraph.RequestTokenURL]))
 				assert.Nil(t, err)
@@ -120,7 +126,8 @@ func TestClientAuth(t *testing.T) {
 					},
 				})
 
-				result, err := client.GetCurrentMigrationNumber("MyGraph")
+				ctx := context.Background()
+				result, err := client.GetCurrentMigrationNumber(ctx, "MyGraph")
 				assert.Nil(t, err)
 
 				assert.Equal(t, "010", result)

@@ -1,0 +1,38 @@
+linters:
+  disable-all: true
+  enable:
+    - bodyclose
+    - depguard
+    - dogsled
+    - dupl
+    - errcheck
+    - exportloopref
+    - funlen
+    - gochecknoinits
+    - goconst
+    - gocritic
+    - gocyclo
+    - gofmt
+    - goimports
+    - gomnd
+    - goprintffuncname
+    - gosec
+    - gosimple
+    - govet
+    - ineffassign
+    - lll
+    - misspell
+    - nakedret
+    - noctx
+    - nolintlint
+    - misspell
+    - staticcheck
+    - stylecheck
+    - typecheck
+    - unconvert
+    - unparam
+    - unused
+linters-settings:
+  lll:
+    # Default: 120.
+    line-length: 150 # long lines in our descriptive errors are ok

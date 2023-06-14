@@ -19,7 +19,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGetMigrationsBetweenVersions(t *testing.T) {
+func TestGetMigrationsBetweenVersions(t *testing.T) { //nolint:funlen
 	cases := []struct {
 		name               string
 		from               string

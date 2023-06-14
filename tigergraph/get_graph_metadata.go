@@ -14,6 +14,7 @@ specific language governing permissions and limitations under the License.
 package tigergraph
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -90,9 +91,9 @@ type GraphMetadataPartialResponse struct {
 }
 
 // GetGraphMetadata returns the graph metadata for a given graph name
-func (c *TigerGraphClient) GetGraphMetadata(graphName string) (*GraphMetadataResponse, error) {
+func (c *TigerGraphClient) GetGraphMetadata(ctx context.Context, graphName string) (*GraphMetadataResponse, error) {
 	urlString := fmt.Sprintf("%s?graph=%s", GetGraphMetadataQueryURL, graphName)
-	req, err := c.CreateGSQLServerRequest(http.MethodGet, urlString, "")
+	req, err := c.CreateGSQLServerRequest(ctx, http.MethodGet, urlString, "")
 	if err != nil {
 		return nil, err
 	}
