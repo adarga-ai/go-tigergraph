@@ -80,7 +80,7 @@ func main() {
 	// Get vertices that are inside a circle at position 0, 0 and radius 5
 	fmt.Println("\nlooking for vertices inside circle at (0, 0) and radius 5")
 	var result tigergraph.TigerGraphResponse[InCircleResponseResult]
-	err = client.Get("/query/vertices_in_circle?cx=0.0&cy=0.0&r=5", "TestGraph", &result)
+	err = client.Get(ctx, "/query/vertices_in_circle?cx=0.0&cy=0.0&r=5", "TestGraph", &result)
 	if err != nil {
 		fmt.Println("failed to get vertices in circle: ", err)
 		return
@@ -94,7 +94,7 @@ func main() {
 	// Get vertices that are inside a circle at position 11, 0 and radius 3
 	fmt.Println("\nlooking for vertices inside circle at (11, 0) and radius 3")
 	var otherResult tigergraph.TigerGraphResponse[InCircleResponseResult]
-	err = client.Get("/query/vertices_in_circle?cx=11.0&cy=0.0&r=3", "TestGraph", &otherResult)
+	err = client.Get(ctx, "/query/vertices_in_circle?cx=11.0&cy=0.0&r=3", "TestGraph", &otherResult)
 	if err != nil {
 		fmt.Println("failed to get vertices in circle: ", err)
 		return
